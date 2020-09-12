@@ -86,7 +86,11 @@ makeGraph master n = runStateTree $ makeGraph' master n
 makeGraph' :: Map Int [Int] -> Int -> Fix (Compose (State (Set Int)) PipeTree)
 makeGraph' master = ana fictional
     where fictional :: Coalgebra (Compose (State (Set Int) )PipeTree) Int
-          fictional k = let (z,zs) = getPair master k in Compose $ return $ Node z zs
+          fictional k = let (z,zs) = getPair master k in Compose $ do
+            visitedNodes ← get
+            let zs' = if k `S.member` visitedNodes then [ ] else zs
+            put (S.insert k visitedNodes)
+            return $ Node z zs'
  
  
      

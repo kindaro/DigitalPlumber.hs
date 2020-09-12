@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveFunctor ,  GADTs #-}
+{-# LANGUAGE DeriveFunctor ,  GADTs
+, StandaloneDeriving, UndecidableInstances #-}
 
 module DigPlum where
 
@@ -13,6 +14,7 @@ import Data.Maybe (fromJust)
 
 newtype Fix f = In { out :: f (Fix f) }
 
+deriving instance Show (f (Fix f))  ⇒ Show (Fix f)
 
 type Algebra f a = f a -> a
 cata :: (Functor f) => Algebra f a -> Fix f -> a  

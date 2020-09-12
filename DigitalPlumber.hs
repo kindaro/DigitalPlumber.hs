@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveFunctor ,  GADTs
-, StandaloneDeriving, UndecidableInstances #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable, GADTs, StandaloneDeriving, UndecidableInstances #-}
 
 module DigPlum where
 
@@ -52,7 +51,7 @@ data Attr f a = Attr
 
 data PipeTree a =
      Node Int [a]
-     deriving (Eq,Show,Functor)
+     deriving (Eq,Show,Functor, Foldable, Traversable)
 
 
 ident :: PipeTree a -> Int
@@ -75,8 +74,14 @@ toMap = M.fromList . map handleLine . lines
 getPair :: Ord k => Map k v -> k -> (k,v)
 getPair m key = (key,  m ! key)
 
+runStateTree ∷ Fix (Compose (State (Set Int)) PipeTree) → GoodTree
+runStateTree = flip evalState S.empty . cata f
+  where
+    f ∷ Algebra (Compose (State (Set Int)) PipeTree) (State (Set Int) GoodTree)
+    f x = fmap In $ getCompose x >>= sequence
+
 makeGraph :: Map Int [Int] -> (Int -> GoodTree)
-makeGraph master n = _runStateTree $ makeGraph' master n
+makeGraph master n = runStateTree $ makeGraph' master n
 
 makeGraph' :: Map Int [Int] -> Int -> Fix (Compose (State (Set Int)) PipeTree)
 makeGraph' master = ana fictional

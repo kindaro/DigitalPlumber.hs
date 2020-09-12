@@ -11,6 +11,8 @@ import qualified Data.Map.Strict as M
 import Data.List.Split (splitOn)
 import Data.List (stripPrefix)
 import Data.Maybe (fromJust)
+import Data.Functor.Compose
+import Control.Monad.State
 
 newtype Fix f = In { out :: f (Fix f) }
 
@@ -74,9 +76,12 @@ getPair :: Ord k => Map k v -> k -> (k,v)
 getPair m key = (key,  m ! key)
 
 makeGraph :: Map Int [Int] -> (Int -> GoodTree)
-makeGraph master = ana fictional
-    where fictional :: Coalgebra PipeTree Int
-          fictional k = let (z,zs) = getPair master k in Node z zs
+makeGraph master n = _runStateTree $ makeGraph' master n
+
+makeGraph' :: Map Int [Int] -> Int -> Fix (Compose (State (Set Int)) PipeTree)
+makeGraph' master = ana fictional
+    where fictional :: Coalgebra (Compose (State (Set Int) )PipeTree) Int
+          fictional k = let (z,zs) = getPair master k in Compose $ return $ Node z zs
  
  
      
